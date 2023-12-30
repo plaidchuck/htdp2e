@@ -1,0 +1,84 @@
+; total length the car will drive
+(define WIDTH-OF-WORLD 200)
+
+; Size of wheels and distance between them (5 pixels per pixels of radius)
+(define WHEEL-RADIUS 5)
+(define WHEEL-DIAMETER (* WHEEL-RADIUS 2))
+(define WHEEL-DISTANCE (* WHEEL-RADIUS 3))
+
+(define WHEEL
+  (circle WHEEL-RADIUS "solid" "black"))
+
+; Dimensions of space between wheels
+(define SPACE
+  (rectangle WHEEL-DISTANCE WHEEL-RADIUS "solid" "white"))
+; Image constant of two wheels and space between
+(define BOTH-WHEELS
+  (beside WHEEL SPACE WHEEL))
+
+; Body of car above wheel space and wheels
+(define FRAME
+  (rectangle (+ (image-width BOTH-WHEELS) WHEEL-DIAMETER)
+             WHEEL-DIAMETER "solid" "red"))
+             
+; Cab of car
+(define CAB
+  (rectangle (+ WHEEL-DIAMETER WHEEL-DISTANCE)
+             WHEEL-RADIUS "solid" "red"))
+
+; Car is an image formed by the frame, cab and wheels
+(define CAR
+   (underlay/offset (above CAB FRAME)
+                   0 WHEEL-DIAMETER BOTH-WHEELS))
+
+; Tree image to be added to background scene
+(define TREE
+  (underlay/xy (circle 10 "solid" "green")
+               9 15
+               (rectangle 2 20 "solid" "brown")))
+
+; Background scene defined by constant and
+; height car plus one wheel radius size
+(define BACKGROUND
+  (place-image TREE (/ WIDTH-OF-WORLD 2)
+               (- (image-height CAR) WHEEL-RADIUS)
+  (empty-scene WIDTH-OF-WORLD
+               (+ (image-height CAR) WHEEL-RADIUS))))
+
+
+; Y Position of car in background scee
+(define Y-CAR
+  (- (image-height CAR) WHEEL-RADIUS))
+
+; A WorldState is a Number.
+; interpretation: the number of pixels between
+; the left border of the scene and the
+; right-most edge of the car.
+
+; WorldState -> WorldState
+; launches the program from some initial state 
+(define (main ws)
+  (big-bang ws
+    [on-tick tock]
+    [to-draw render]
+    [stop-when end?]))
+
+; WorldState -> Image
+; places the image of the car x pixels from 
+; the left margin of the BACKGROUND image
+(define (render cw)
+  (place-image CAR (- cw (/ (image-width CAR) 2))
+                      Y-CAR BACKGROUND))
+ 
+; WorldState -> WorldState
+; moves the car 3 pixels for each clock tick
+; (check-expect (tock 20) 23)
+; (check-expect (tock 78) 81)
+(define (tock cw)
+  (+ cw 3))
+
+; WorldState -> Boolean
+; Ends Animation when the car has left the
+; BACKGROUND image
+(define (end? cw)
+  (>= cw (+ WIDTH-OF-WORLD (image-width CAR))))
