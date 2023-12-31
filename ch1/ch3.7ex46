@@ -1,0 +1,44 @@
+;  Design a “virtual cat” world program that
+; continuously moves the cat from left to right.
+
+
+(define cat1 ...)
+
+(define cat2 ...)
+
+(define BACKGROUND
+  (empty-scene (* (image-width cat1) 4)
+               (image-height cat1)))
+
+; A WorldState is a Number.
+; interpretation the number of pixels between
+; the left border of the scene and the center of
+; the cat image
+
+; WorldState -> Image
+; Renders image of cat on the scene basing the x
+; position on the current clock tick +3.
+(define (render cw)
+  (cond
+    [(odd? cw)
+    (place-image cat1 cw
+               (/ (image-height BACKGROUND) 2)
+               BACKGROUND)]
+    [else (place-image cat2 cw
+               (/ (image-height BACKGROUND) 2)
+               BACKGROUND)]))
+ 
+; WorldState -> WorldState
+; For each clock tick, add 3 to the worldstate. 
+(define (clock-tick-handler cw)
+  (modulo
+   (+ cw 3) (round (+ (image-width BACKGROUND)
+               (/ (image-width cat1) 2)))))
+ 
+
+; WorldState -> WorldState
+; launches the program from some initial state 
+(define (prog-cat ws)
+   (big-bang ws
+     [on-tick clock-tick-handler]
+     [to-draw render]))
