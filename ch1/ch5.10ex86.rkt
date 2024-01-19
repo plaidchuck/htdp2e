@@ -1,6 +1,3 @@
-;; The first three lines of this file were inserted by DrRacket. They record metadata
-;; about the language level of this file in a form that our tools can easily process.
-#reader(lib "htdp-beginner-reader.ss" "lang")((modname ch5.10) (read-case-sensitive #t) (teachpacks ((lib "image.rkt" "teachpack" "2htdp") (lib "universe.rkt" "teachpack" "2htdp") (lib "batch-io.rkt" "teachpack" "2htdp"))) (htdp-settings #(#t constructor repeating-decimal #f #t none #f ((lib "image.rkt" "teachpack" "2htdp") (lib "universe.rkt" "teachpack" "2htdp") (lib "batch-io.rkt" "teachpack" "2htdp")) #f)))
 (define BACKG (empty-scene 200 20))
 (define CURSOR (rectangle 1 20 "solid" "red"))
 (define BACKG-WIDTH (image-width BACKG))
@@ -17,6 +14,8 @@
   (make-editor "walla" "walla"))
 (define ex3
   (make-editor "" ""))
+(define ex4
+  (make-editor "abcdefghijklmopqrwteydhfiop" ""))
 
 ; Editor -> Image
 ; Consumes and editor structure and produces image of both strings from
@@ -62,9 +61,16 @@
 ;(check-expect (edit
 ;               (make-editor "abcdefghijklmnopqrstuvwxyz" "") "1" )
 ;              (make-editor "abcdefghijklmnopqrstuvwxyz" ""))
+;(check-expect (edit ex3 "t")(make-editor "t" ""))
+;(check-expect (edit ex4 "\b")(make-editor "abcdefghijklmopqrwteydhfio" ""))
 
 (define (edit ed ke)
   (cond
+   [(and (check-length ed ke)
+         (not (string=? ke "\b"))
+         (not (string=? ke "left"))
+         (not (string=? ke "right")))
+         ed]
    [(string=? ke "\b")(make-editor (string-remove-last (editor-pre ed))
                                 (editor-post ed))]
    [(string=? ke "left")(make-editor (string-remove-last (editor-pre ed))
@@ -81,7 +87,6 @@
          (not (string=? ke "\r"))
          (not (string=? ke "\u007F")))
     (make-editor (string-append (editor-pre ed) ke) (editor-post ed))]
-   
    [else ed]))
 
 ; String -> String
@@ -112,6 +117,16 @@
 (define (string-first str)
   (if (> (string-length str) 0) (string-ith str 0) str))
 
+; Image -> Boolean
+; Consumes an image of the text rendering from the editor structure
+; and keyevent and returns a boolean determining whether the rendered
+; text output is longer than the background canvas
+;(check-expect (check-length ex4 "t") #true)
+;(check-expect (check-length ex3 "t") #false)
+(define (check-length ed ke)
+  (if (> (image-width (draw-text
+                       (string-append (editor-pre ed)(editor-post ed) ke)))
+                      BACKG-WIDTH) #true #false))
 
 (define (run ed)
   (big-bang ed
