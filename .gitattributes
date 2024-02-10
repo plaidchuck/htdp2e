@@ -1,1 +1,1 @@
-src/*.rkt linguist-language=drracket
+*.rkt linguist-language=drracket
